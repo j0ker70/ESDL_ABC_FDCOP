@@ -168,7 +168,7 @@ class HABCSolver:
 
     
     def end_it(self, message):
-        print('Hasta La Vista Baby!', message)
+        print('Terminated!', message)
         exit()
 
 
