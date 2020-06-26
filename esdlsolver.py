@@ -85,10 +85,10 @@ class Solver:
 
 
     def build(self):
-        self.fitness = [(1 - self.population[i].fitness) if self.population[i].fitness < 0 else 1 / (1 + self.population[i].fitness)
-                for i in range(self.SN)]
+        self.fitness = np.array([(1 - self.population[i].fitness) if self.population[i].fitness < 0 else 1 / (1 + self.population[i].fitness)
+                for i in range(self.SN)])
         total_sum = sum([self.fitness[i] ** self.alpha for i in range(self.SN)])
-        self.weights = [(self.fitness[i] ** self.alpha) / total_sum for i in range(self.SN)]
+        self.weights = np.array([(self.fitness[i] ** self.alpha) / total_sum for i in range(self.SN)])
 
 
     def update(self, i):
