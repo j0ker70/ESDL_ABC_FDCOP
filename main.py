@@ -7,7 +7,7 @@ import time
 
 
 def main(agent, simulations, tot_test):
-    iterations = 700
+    iterations = 200
     population_size = 100
     max_trials = 50
     lower_bound = -50

@@ -68,6 +68,7 @@ class Solver:
         self.weights = None
         self.min_res = None
         self.min_sol = None
+        self.cum_weights = None
 
 
     def generate_population(self):
@@ -89,6 +90,7 @@ class Solver:
                 for i in range(self.SN)])
         total_sum = sum([self.fitness[i] ** self.alpha for i in range(self.SN)])
         self.weights = np.array([(self.fitness[i] ** self.alpha) / total_sum for i in range(self.SN)])
+        self.cum_weights = np.cumsum(self.weights)
 
 
     def update(self, i):
@@ -122,10 +124,24 @@ class Solver:
         for i in range(self.SN):
             self.search_for(i)
 
+    
+    def choose(self):
+        x = np.random.uniform(low=0, high=1)
+        lo, hi, pos = 0, self.SN - 1, -1
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            if self.cum_weights[mid] >= x:
+                pos = mid
+                hi = mid - 1
+            else:
+                lo = mid + 1
+        assert pos >= 0
+        return pos
+
 
     def onlooker_bee_phase(self):
         for _ in range(self.SN):
-            i = np.random.choice(range(self.SN), p=self.weights)
+            i = self.choose()
             for j in range(self.M):
                 self.search_for(i, self.elite[j])
 
