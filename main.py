@@ -9,7 +9,7 @@ import time
 def main(agent, simulations, tot_test):
     iterations = 100
     population_size = 100
-    max_trials = 50
+    max_trials = agent
     lower_bound = -50
     upper_bound = 50
     alpha = 1
