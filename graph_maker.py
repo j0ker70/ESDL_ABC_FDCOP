@@ -21,18 +21,22 @@ class Edge:
 
 
 def get_edges(nodes, test_no):
-#    filename = 'tests/d' + str(nodes) + '/test_' + str(test_no) + '.txt'
-    filename = 'FDCOP_50/P' + str(test_no) + '.txt'
+    # filename = 'tests/d' + str(nodes) + '/test_' + str(test_no) + '.txt'
+    filename = 'tests/d{}/test_{}.txt'.format(nodes, test_no)
+    # filename = 'FDCOP_50/P' + str(test_no) + '.txt'
     input_file = open(filename, 'r')
-#    lines = [v.strip() for v in input_file.readlines()]
+    lines = [v.strip() for v in input_file.readlines()]
     edge_list = []
-    n, m = map(int, input_file.readline().split())
-    for i in range(n):
-        input_file.readline()
-    for _ in range(m):
-        u, v = map(int, input_file.readline().split())
-        a, b, c = map(int, input_file.readline().split())
-        # u, v, a, b, c = map(int, line.split())
+    # n, m = map(int, input_file.readline().split())
+    # for i in range(n):
+        # input_file.readline()
+    # for _ in range(m):
+        # u, v = map(int, input_file.readline().split())
+        # a, b, c = map(int, input_file.readline().split())
+        # # u, v, a, b, c = map(int, line.split())
+        # edge_list.append(Edge(u, v, functions.BinaryFunction(a, 0, c, 0, b, 0)))
+    for line in lines:
+        u, v, a, b, c = map(int, line.split())
         edge_list.append(Edge(u, v, functions.BinaryFunction(a, 0, c, 0, b, 0)))
     input_file.close()
     return edge_list

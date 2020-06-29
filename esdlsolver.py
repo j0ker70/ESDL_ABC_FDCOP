@@ -141,7 +141,7 @@ class Solver:
 
     def onlooker_bee_phase(self):
         for _ in range(self.SN):
-            i = self.choose()
+            i = np.random.choice(range(self.SN), p=self.weights)
             for j in range(self.M):
                 self.search_for(i, self.elite[j])
 

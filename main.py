@@ -7,7 +7,7 @@ import time
 
 
 def main(agent, simulations, tot_test):
-    iterations = 200
+    iterations = 100
     population_size = 100
     max_trials = 50
     lower_bound = -50
@@ -18,7 +18,7 @@ def main(agent, simulations, tot_test):
     elite_size = 5
     print('Iteration = {} population size = {} max trials = {} alpha = {}'.
           format(iterations, population_size, max_trials, alpha))
-    file = open('output.txt', 'w')
+    # file = open('output.txt', 'w')
     tot_sum = 0
     for test in range(tot_test):
         graph = Graph(nodes=agent, probability=None, lower_bound=None, upper_bound=None, test_no=test)
@@ -32,19 +32,19 @@ def main(agent, simulations, tot_test):
             end_time = time.time()
             print('Simulation took {} seconds'.format(end_time- start_time))
         sum_res /= simulations
-        file.write(str(sum_res) + '\n')
+        # file.write(str(sum_res) + '\n')
         tot_sum += sum_res
-    file.close()
+    # file.close()
     return tot_sum / tot_test
 
 
 if __name__ == "__main__":
-    # file = open('output.txt', 'w')
-#    for agents in range(20, 21):
-    result = main(agent=50, simulations=5, tot_test=30)
-    print(result)
-        # file.write(str(agents) + ' ' + str(result) + '\n')
-    # file.close()
+    file = open('output.txt', 'w')
+    for agents in range(3, 50):
+        result = main(agent=agents, simulations=5, tot_test=10)
+        print(result)
+        file.write(str(agents) + ' ' + str(result) + '\n')
+    file.close()
 
 
 
