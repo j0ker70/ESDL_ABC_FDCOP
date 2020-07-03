@@ -43,7 +43,7 @@ class Bee:
 
         self.fit_boundaries(new_bee)
 
-        if self.graph.cost(new_bee) < self.fitness:
+        if self.graph.cost(new_bee) > self.fitness:
             self.set_pos(new_bee)
         else:
             self.tried += 1
@@ -66,77 +66,43 @@ class Solver:
         self.elite = None
         self.fitness = None
         self.weights = None
-        self.min_res = None
-        self.min_sol = None
+        self.max_res = None
+        self.max_sol = None
         self.cum_weights = None
 
 
     def generate_population(self):
         self.population = [Bee(self.lb, self.ub, self.limit, self.graph, self.N) for _ in range(self.SN)]
-        self.get_minimum()
+        self.get_maximum()
 
 
-    def get_minimum(self):
+    def get_maximum(self):
         for i in range(self.SN):
-            if self.min_res is None or self.min_res > self.population[i].fitness:
-                self.min_res = self.population[i].fitness
-                self.min_sol = np.copy(self.population[i].pos)
+            if self.max_res is None or self.max_res < self.population[i].fitness:
+                self.max_res = self.population[i].fitness
+                self.max_sol = np.copy(self.population[i].pos)
         sorted_pos = np.argsort([self.population[i].fitness for i in range(self.SN)])
-        self.elite = sorted_pos[:self.M]
+        self.elite = sorted_pos[-self.M:]
 
 
     def build(self):
-        self.fitness = np.array([(1 - self.population[i].fitness) if self.population[i].fitness < 0 else 1 / (1 + self.population[i].fitness)
+        self.fitness = np.array([(1 + self.population[i].fitness) if self.population[i].fitness > 0 else 1 / (1 - self.population[i].fitness)
                 for i in range(self.SN)])
         total_sum = sum([self.fitness[i] ** self.alpha for i in range(self.SN)])
         self.weights = np.array([(self.fitness[i] ** self.alpha) / total_sum for i in range(self.SN)])
         self.cum_weights = np.cumsum(self.weights)
 
 
-    def update(self, i):
-        if self.min_res is None or self.min_res > self.population[i].fitness:
-            self.min_res = self.population[i].fitness
-            self.min_sol = np.copy(self.population[i].pos)
-            
-        if self.elite is None:
-            self.elite = [i]
-        elif len(self.elite) < self.M:
-            self.elite.append(i)
-        elif i not in self.elite:
-            assert len(self.elite) == self.M
-            index = None
-            for m in range(self.M):
-                if index is None or self.population[self.elite[m]].fitness > self.population[self.elite[index]].fitness:
-                    index = m
-            assert index is not None
-            if self.population[self.elite[index]].fitness > self.population[i].fitness:
-                self.elite[index] = i
-
-
     def search_for(self, i, m = -1):
         e = np.random.choice(self.elite)
         if m == -1:
             m = e
-        self.population[i].search(self.min_sol, self.population[m].pos, self.population[e].pos, e == m)
+        self.population[i].search(self.max_sol, self.population[m].pos, self.population[e].pos, e == m)
 
 
     def employed_bee_phase(self):
         for i in range(self.SN):
             self.search_for(i)
-
-    
-    def choose(self):
-        x = np.random.uniform(low=0, high=1)
-        lo, hi, pos = 0, self.SN - 1, -1
-        while lo <= hi:
-            mid = (lo + hi) // 2
-            if self.cum_weights[mid] >= x:
-                pos = mid
-                hi = mid - 1
-            else:
-                lo = mid + 1
-        assert pos >= 0
-        return pos
 
 
     def onlooker_bee_phase(self):
@@ -160,7 +126,7 @@ class Solver:
             # print('Employed bee phase took {} seconds'.format(en - st))
 
             # st = time.time()
-            self.get_minimum()
+            self.get_maximum()
             # en = time.time()
             # print('get_minimum took {} seconds'.format(en - st))
 
@@ -174,16 +140,18 @@ class Solver:
             # en = time.time()
             # print('onlooker bee phase took {} seconds'.format(en - st))
             
+            self.get_maximum()
+            
             # st = time.time()
             self.scout_bee_phase()
             # en = time.time()
             # print('scout bee phase took {} seconds'.format(en - st))
 
             # st = time.time()
-            self.get_minimum()
+            self.get_maximum()
             # en = time.time()
             # print('get_minimum took {} seconds'.format(en - st))
 
-            print('iteration no = {} Result = {}'.format(ith, self.min_res))
-        return self.min_res, self.min_sol
+            print('iteration no = {} Result = {}'.format(ith, self.max_res))
+        return self.max_res, self.max_sol
 
