@@ -118,6 +118,7 @@ class Solver:
 
 
     def solve(self):
+        iter_sol = np.zeros(self.iters)
         self.generate_population()
         for ith in range(self.iters):
             # st = time.time()
@@ -151,7 +152,8 @@ class Solver:
             self.get_maximum()
             # en = time.time()
             # print('get_minimum took {} seconds'.format(en - st))
-
-            print('iteration no = {} Result = {}'.format(ith, self.max_res))
-        return self.max_res, self.max_sol
+            
+            iter_sol[ith] = self.max_res
+            # print('iteration no = {} Result = {}'.format(ith, self.max_res))
+        return self.max_res, self.max_sol, iter_sol
 
