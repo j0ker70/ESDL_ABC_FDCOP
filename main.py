@@ -53,7 +53,7 @@ if __name__ == "__main__":
     file1 = open('result_output.txt', 'w')
     file2 = open('time_output.txt', 'w')
     file3 = open('iteration_output.txt', 'w')
-    for agents in range(3, 50):
+    for agents in range(3, 51):
         result, iter_sol, time_taken = main(agent=agents, simulations=5, tot_test=10)
         print(result)
         file1.write('{} {}\n'.format(agents, result))
