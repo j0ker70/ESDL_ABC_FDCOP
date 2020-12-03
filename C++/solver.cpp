@@ -1,0 +1,282 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define dbg(v) cout << __LINE__ << ": " << #v << " = " << v << endl
+
+int randomInt (int l, int r) { // Return random integer between [l, r]
+    return rand() % (r - l + 1) + l;
+}
+
+pair <int, int> chooseTwo (int n) {
+    assert(n > 2);
+    int p1 = randomInt(0, n - 1);
+    int p2 = randomInt(0, n - 2);
+    if (p2 >= p1) {
+        ++p2;
+    }
+    return {p1, p2};
+}
+
+double randomDouble (double fMin, double fMax) { // Return random double between [fMin, fMax]
+    double f = (double) rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
+}
+
+vector <double> randomDoubleList (double l, double r, int n) {
+    vector <double> ret(n);
+    for (auto &v : ret) {
+        v = randomDouble(l, r);
+    }
+    return ret;
+}
+
+struct BinaryFunction {
+    int a, b, c, d, e, f; // ax^2 + bx + cy^2 + dy + exy + f
+    BinaryFunction (int aa, int bb, int cc, int dd, int ee, int ff): a(aa), b(bb), c(cc), d(dd), e(ee), f(ff) {
+    }
+    string toString () {
+        return to_string(a) + "x^2 + " + to_string(b) + "x + " + to_string(c) + "y^2 + " +
+            to_string(d) + "y + " + to_string(e) + "xy + " + to_string(f);
+    }
+    double value (double x, double y) {
+        return a * x * x + b * x + c * y * y + d * y + e * x * y + f;
+    }
+};
+
+struct Edge {
+    int u, v;
+    BinaryFunction func;
+    Edge (int uu, int vv, BinaryFunction b) : u(uu), v(vv), func(b) {
+    }
+    double cost (double x, double y) {
+        return func.value(x, y);
+    }
+    string toString() {
+        return "From " + to_string(u) + " To " + to_string(v) + " with function -->> " + func.toString();
+    }
+};
+
+vector <Edge> get_test (int nodes, int test_no) {
+    string filename = "tests/d" + to_string(nodes) + "/test_" + to_string(test_no) + ".txt";
+    FILE *inputFile = fopen(filename.c_str(), "r");
+    assert(inputFile != NULL);
+    vector <Edge> ret;
+    int u, v, a, b, c;
+    while (fscanf(inputFile, "%d %d %d %d %d", &u, &v, &a, &b, &c) != EOF) {
+        ret.push_back(Edge(u, v, BinaryFunction(a, 0, c, 0, b, 0)));
+    }
+    fclose(inputFile);
+    return ret;
+}
+
+struct Graph {
+    int nodes, testNo;
+    vector <Edge> edgeList;
+    Graph () {}
+    Graph (int n, int test) : nodes(n), testNo(test) {
+        edgeList = get_test(nodes, testNo);
+    }
+    double totalCost (const vector <double> &nodeVals) {
+        double ret = 0;
+        for (Edge ed : edgeList) {
+            ret += ed.cost(nodeVals[ed.u], nodeVals[ed.v]);
+        }
+        return ret;
+    }
+    string toString() {
+        string ret;
+        for (Edge ed : edgeList) {
+            ret += ed.toString();
+            ret += "\n";
+        }
+        return ret;
+    }
+};
+
+int lowerBound, upperBound, limit;
+Graph graph;
+
+struct Solution {
+    int n, tried;
+    double fitness;
+    vector <double> pos;
+    Solution () {}
+    Solution (int nn) : n(nn) {
+        pos = randomDoubleList(lowerBound, upperBound, n);
+        tried = 0;
+        fitness = graph.totalCost(pos);
+    }
+    void setPos (const vector <double> &newPos) {
+        pos = newPos;
+        fitness = graph.totalCost(pos);
+        tried = 0;
+    }
+    void fitBounds () {
+        for (double &v : pos) {
+            v = max(v, (double) lowerBound);
+            v = min(v, (double) upperBound);
+        }
+    }
+    void check () {
+        if (limit <= tried) {
+            vector <double> now = randomDoubleList(lowerBound, upperBound, n);
+            setPos(now);
+        }
+    }
+    bool search (const Solution &Gbest, const Solution &m, const Solution &e, bool flag) {
+        Solution newSol = *this;
+        auto [j, h] = chooseTwo(n);
+        double phi1 = randomDouble(-0.5, 0.5);
+        double phi2 = randomDouble(0, 1.0);
+        if (flag) {
+            newSol.pos[j] = 0.5 * (m.pos[h] + Gbest.pos[j]) + phi1 * (pos[h] - e.pos[j]) + phi2 * (pos[h] - Gbest.pos[j]);
+        }
+        else {
+            newSol.pos[h] = 0.5 * (m.pos[j] + Gbest.pos[h]) + phi1 * (pos[j] - e.pos[h]) + phi2 * (pos[j] - Gbest.pos[h]);
+        }
+        newSol.fitBounds();
+        newSol.fitness = graph.totalCost(newSol.pos);
+        if (newSol.fitness > fitness) {
+            setPos(newSol.pos);
+            return true;
+        }
+        ++tried;
+        return false;
+    }
+};
+
+struct Population {
+    int sn, es, agents;
+    vector <double> fit, prob;
+    vector <Solution> pop, elite;
+    Solution Gbest;
+    Population (int SN, int m, int ag) : sn(SN), es(m), agents(ag) {
+        fit.resize(sn);
+        prob.resize(sn);
+        pop.resize(sn);
+        for (int i = 0; i < sn; i++) {
+            pop[i] = Solution(agents);
+        }
+        elite.resize(es);
+        Gbest = pop[0];
+        for (int i = 0; i < es; i++) {
+            elite[i] = pop[i];
+            if (pop[i].fitness > Gbest.fitness) {
+                Gbest = pop[i];
+            }
+        }
+        for (int i = es; i < sn; i++) {
+            updateValues(pop[i]);
+        }
+    }
+    void updateValues (Solution s) {
+        int mnPos = 0;
+        for (int i = 1; i < es; i++) {
+            if (elite[mnPos].fitness > elite[i].fitness) {
+                mnPos = i;
+            }
+        }
+        if (elite[mnPos].fitness < s.fitness) {
+            elite[mnPos] = s;
+        }
+        if (Gbest.fitness < s.fitness) {
+            Gbest = s;
+        }
+    }
+    void build () {
+        double sum = 0;
+        for (int i = 0; i < sn; i++) {
+            if (pop[i].fitness > 0) {
+                fit[i] = 1 + pop[i].fitness;
+            }
+            else {
+                fit[i] = 1.0 / (1 - pop[i].fitness);
+            }
+            sum += fit[i];
+        }
+        for (int i = 0; i < sn; i++) {
+            prob[i] = fit[i] / sum;
+        }
+    }
+    int chooseOne () {
+        double x = randomDouble(0, 1);
+        double sum = 0;
+        for (int i = 0; i < sn; i++) {
+            sum += prob[i];
+            if (x <= sum) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    void searchSpace (int i, int m = -1) {
+        int e = randomInt(0, es - 1);
+        if (m == -1) {
+            m = e;
+        }
+        if (pop[i].search(Gbest, elite[m], elite[e], m == e)) {
+            updateValues(pop[i]);
+        }
+    }
+    void employed () {
+        for (int i = 0; i < sn; i++) {
+            searchSpace(i);
+        }
+        build();
+    }
+    void onlooker () {
+        for (int i = 0; i < sn; i++) {
+            int j = chooseOne();
+            assert(j >= 0);
+            for (int k = 0; k < es; k++) {
+                searchSpace(j, k);
+            }
+        }
+        build();
+    }
+    void scout () {
+        for (int i = 0; i < sn; i++) {
+            pop[i].check();
+        }
+        build();
+    }
+    double solve (int iterations) {
+        for (int itr = 0; itr < iterations; itr++) {
+            employed();
+            onlooker();
+            scout();
+        }
+        return Gbest.fitness;
+    }
+};
+
+void initialize () {
+    srand((unsigned) time(NULL));
+    lowerBound = -50;
+    upperBound = 50;
+    graph = Graph(49, 0);
+}
+
+double getSolution (int sim) {
+    limit = 3;
+    Population population(100, 5, 49);
+    double sum = 0;
+    for (int ss = 0; ss < sim; ss++) {
+        clock_t start = clock();
+        double val = population.solve(100);
+        clock_t end = clock();
+        double secs = ((double) end - (double) start) / CLOCKS_PER_SEC;
+        dbg(val);
+        dbg(secs);
+        sum += val;
+    }
+    sum /= sim;
+    return sum;
+}
+
+int main() {
+    initialize();
+    dbg(getSolution(5));
+    return 0;
+}
+
