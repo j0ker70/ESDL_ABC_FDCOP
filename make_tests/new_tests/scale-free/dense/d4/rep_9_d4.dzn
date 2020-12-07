@@ -1,0 +1,9 @@
+domain 50;
+function -2x_1^2 0x_1 -5x_3^2 0x_3 2x_1x_3 0;
+function 3x_1^2 0x_1 -5x_4^2 0x_4 6x_1x_4 0;
+function -8x_2^2 0x_2 5x_3^2 0x_3 0x_2x_3 0;
+function 0x_2^2 0x_2 5x_4^2 0x_4 -4x_2x_4 0;
+neighbor set: x_1: x_3 x_4 ;
+neighbor set: x_2: x_3 x_4 ;
+neighbor set: x_3: x_1 x_2 ;
+neighbor set: x_4: x_1 x_2 ;

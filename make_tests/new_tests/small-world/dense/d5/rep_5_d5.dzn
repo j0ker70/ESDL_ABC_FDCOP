@@ -1,0 +1,16 @@
+domain 50;
+function -9x_1^2 0x_1 6x_2^2 0x_2 2x_1x_2 0;
+function -9x_1^2 0x_1 -8x_3^2 0x_3 1x_1x_3 0;
+function 3x_1^2 0x_1 4x_4^2 0x_4 -8x_1x_4 0;
+function 2x_1^2 0x_1 4x_5^2 0x_5 8x_1x_5 0;
+function -2x_2^2 0x_2 9x_3^2 0x_3 8x_2x_3 0;
+function 7x_2^2 0x_2 -8x_4^2 0x_4 -1x_2x_4 0;
+function 7x_2^2 0x_2 1x_5^2 0x_5 -4x_2x_5 0;
+function 3x_3^2 0x_3 6x_4^2 0x_4 4x_3x_4 0;
+function 6x_3^2 0x_3 2x_5^2 0x_5 -9x_3x_5 0;
+function 5x_4^2 0x_4 -2x_5^2 0x_5 -5x_4x_5 0;
+neighbor set: x_1: x_2 x_3 x_4 x_5 ;
+neighbor set: x_2: x_1 x_3 x_4 x_5 ;
+neighbor set: x_3: x_1 x_2 x_4 x_5 ;
+neighbor set: x_4: x_1 x_2 x_3 x_5 ;
+neighbor set: x_5: x_1 x_2 x_3 x_4 ;

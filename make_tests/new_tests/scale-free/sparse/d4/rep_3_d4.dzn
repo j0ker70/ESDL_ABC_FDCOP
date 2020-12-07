@@ -1,0 +1,8 @@
+domain 50;
+function 8x_1^2 0x_1 0x_4^2 0x_4 -1x_1x_4 0;
+function -7x_2^2 0x_2 -5x_4^2 0x_4 2x_2x_4 0;
+function 1x_3^2 0x_3 2x_4^2 0x_4 6x_3x_4 0;
+neighbor set: x_1: x_4 ;
+neighbor set: x_2: x_4 ;
+neighbor set: x_3: x_4 ;
+neighbor set: x_4: x_1 x_2 x_3 ;
