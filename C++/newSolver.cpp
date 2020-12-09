@@ -3,13 +3,17 @@ using namespace std;
 
 #define dbg(v) cout << __LINE__ << ": " << #v << " = " << v << endl
 
+default_random_engine re(unsigned(time(nullptr)));
+
 int randomInt (int l, int r) { // Return random integer between [l, r]
     return rand() % (r - l + 1) + l;
 }
 
 double randomDouble (double fMin, double fMax) { // Return random double between [fMin, fMax]
-    double f = (double) rand() / RAND_MAX;
-    return fMin + f * (fMax - fMin);
+    //double f = (double) rand() / RAND_MAX;
+    //return fMin + f * (fMax - fMin);
+    uniform_real_distribution<double> unif(fMin, fMax);
+    return unif(re);
 }
 
 vector <double> randomDoubleList (double l, double r, int n) {
@@ -110,6 +114,13 @@ struct Solution {
         tried = 0;
         fitness = graph.totalCost(pos);
     }
+    string toString() {
+        string x;
+        for (double v : pos) {
+            x += to_string(v) + " ";
+        }
+        return x;
+    }
     void setPos (const vector <double> &newPos) {
         pos = newPos;
         fitness = graph.totalCost(pos);
@@ -141,6 +152,7 @@ struct Solution {
             setPos(newSol.pos);
             return true;
         }
+        ++tried;
         if (!vis[j]) {
             ++tried;
         }
@@ -161,10 +173,7 @@ struct Population {
     Population (int SN, int m, int ag) : sn(SN), es(m), agents(ag) {
         fit.resize(sn);
         prob.resize(sn);
-        pop.resize(sn);
-        for (int i = 0; i < sn; i++) {
-            pop[i] = Solution(agents);
-        }
+        pop.resize(sn, Solution(agents));
         elite.resize(es);
         Gbest = pop[0];
         for (int i = 0; i < es; i++) {
@@ -230,9 +239,9 @@ struct Population {
         for (int i = 0; i < sn; i++) {
             searchSpace(i);
         }
-        build();
     }
     void onlooker () {
+        build();
         for (int i = 0; i < sn; i++) {
             int j = chooseOne();
             assert(j >= 0);
@@ -242,6 +251,7 @@ struct Population {
         }
     }
     double solve (int iterations) {
+        //double hun = 0;
         for (int itr = 0; itr < iterations; itr++) {
             employed();
             onlooker();
@@ -269,33 +279,34 @@ double singleAgent (int ag, int probs, int sim) {
     for (int prb = 0; prb < probs; prb++) {
         graph = Graph(ag, prb);
         double sum = 0;
-        clock_t prStart = clock();
+        //clock_t prStart = clock();
         for (int ss = 0; ss < sim; ss++) {
-            clock_t start = clock();
+            //clock_t start = clock();
             double x = singleSimulation(populationSize, eliteSize, ag);
             sum += x;
-            clock_t end = clock();
-            double secs = ((double) end - (double) start) / CLOCKS_PER_SEC;
+            //clock_t end = clock();
+            //double secs = ((double) end - (double) start) / CLOCKS_PER_SEC;
             //printf("Agents = %d Test = %d Simulation = %d took = %f seconds with %f utility\n", ag, prb, ss, secs, x);
         }
-        clock_t prEnd = clock();
-        double prTime = ((double) prEnd - (double) prStart) / CLOCKS_PER_SEC;
+        //clock_t prEnd = clock();
+        //double prTime = ((double) prEnd - (double) prStart) / CLOCKS_PER_SEC;
         //printf("Agent %d for Problem %d took %f seconds\n", ag, prb, prTime);
         sum /= sim;
+        //printf("Prb = %d util = %f\n", prb, sum);
         bsum += sum;
     }
     bsum /= probs;
     return bsum;
 }
 
-void getSolution () {
-    int probs = 10, sim = 5;
-    vector <double> ans;
-    for (int ag = 5; ag <= 100; ag += 5) {
+void getSolution (int l, int r) {
+    int probs = 3, sim = 5;
+    vector <double> ans(20);
+    for (int ag = l; ag <= r; ag += 5) {
         clock_t agStart = clock();
         double bsum = singleAgent(ag, probs, sim);
         clock_t agEnd = clock();
-        ans.push_back(bsum);
+        ans[ag / 5 - 1] = bsum;
         double agTime = ((double) agEnd - (double) agStart) / CLOCKS_PER_SEC;
         printf("Totally Agent %d took %f seconds\n", ag, agTime);
     }
@@ -309,10 +320,12 @@ void getSolution () {
 int main() {
     clock_t tst = clock();
     initialize();
-    getSolution();
+    getSolution(5, 100);
     clock_t ten = clock();
     double ttm = ((double) ten - (double) tst) / CLOCKS_PER_SEC;
     printf("Total time took %d minute and %f seconds\n", (int) ttm / 60, ttm - ((int) ttm / 60) * 60);
+    //double ans = singleAgent(25, 1, 1);
+    //dbg(ans);
     return 0;
 }
 

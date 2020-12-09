@@ -151,7 +151,7 @@ struct Solution {
             newSol.pos[j] = 0.5 * (m.pos[h] + Gbest.pos[j]) + phi1 * (pos[h] - e.pos[j]) + phi2 * (pos[h] - Gbest.pos[j]);
         }
         else {
-            newSol.pos[h] = 0.5 * (m.pos[j] + Gbest.pos[h]) + phi1 * (pos[j] - e.pos[h]) + phi2 * (pos[j] - Gbest.pos[h]);
+            newSol.pos[j] = 0.5 * (m.pos[j] + Gbest.pos[h]) + phi1 * (pos[j] - e.pos[h]) + phi2 * (pos[j] - Gbest.pos[h]);
         }
         newSol.fitBounds();
         newSol.fitness = graph.totalCost(newSol.pos);
@@ -233,12 +233,12 @@ struct Population {
         return -1;
     }
 
-    void searchSpace (int i, int m = -1) {
+    void searchSpace (int i, int m = -1, bool flag = true) {
         int e = randomInt(0, es - 1);
         if (m == -1) {
             m = e;
         }
-        if (pop[i].search(Gbest, elite[m], elite[e], m == e)) {
+        if (pop[i].search(Gbest, elite[m], elite[e], flag)) {
             updateValues(pop[i]);
         }
     }
@@ -247,18 +247,17 @@ struct Population {
         for (int i = 0; i < sn; i++) {
             searchSpace(i);
         }
-        build();
     }
 
     void onlooker () {
+        build();
         for (int i = 0; i < sn; i++) {
             int j = chooseOne();
             assert(j >= 0);
             for (int k = 0; k < es; k++) {
-                searchSpace(j, k);
+                searchSpace(j, k, false);
             }
         }
-        build();
     }
 
     void scout () {
@@ -266,7 +265,6 @@ struct Population {
             pop[i].check();
             updateValues(pop[i]);
         }
-        build();
     }
 
     double solve (int iterations) {
@@ -298,17 +296,17 @@ double singleAgent (int ag, int probs, int sim) {
     for (int prb = 0; prb < probs; prb++) {
         graph = Graph(ag, prb);
         double sum = 0;
-        clock_t prStart = clock();
+        //clock_t prStart = clock();
         for (int ss = 0; ss < sim; ss++) {
-            clock_t start = clock();
+            //clock_t start = clock();
             sum += singleSimulation(populationSize, eliteSize, ag);
-            clock_t end = clock();
-            double secs = ((double) end - (double) start) / CLOCKS_PER_SEC;
-            printf("Agents = %d Test = %d Simulation = %d took = %f seconds\n", ag, prb, ss, secs);
+            //clock_t end = clock();
+            //double secs = ((double) end - (double) start) / CLOCKS_PER_SEC;
+            //printf("Agents = %d Test = %d Simulation = %d took = %f seconds\n", ag, prb, ss, secs);
         }
-        clock_t prEnd = clock();
-        double prTime = ((double) prEnd - (double) prStart) / CLOCKS_PER_SEC;
-        printf("Agent %d for Problem %d took %f seconds\n", ag, prb, prTime);
+        //clock_t prEnd = clock();
+        //double prTime = ((double) prEnd - (double) prStart) / CLOCKS_PER_SEC;
+        //printf("Agent %d for Problem %d took %f seconds\n", ag, prb, prTime);
         sum /= sim;
         bsum += sum;
     }
@@ -317,9 +315,9 @@ double singleAgent (int ag, int probs, int sim) {
 }
 
 void getSolution () {
-    int probs = 10, sim = 5;
+    int probs = 3, sim = 5;
     vector <double> ans;
-    for (int ag = 100; ag <= 100; ag += 5) {
+    for (int ag = 25; ag <= 25; ag += 5) {
         clock_t agStart = clock();
         double bsum = singleAgent(ag, probs, sim);
         clock_t agEnd = clock();

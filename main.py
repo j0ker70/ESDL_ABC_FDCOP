@@ -41,25 +41,15 @@ def main(agent, simulations, tot_test):
         sum_res /= simulations
         sum_iter_sol /= simulations
         sum_time /= simulations
+        print('Prb = {} Util = {}'.format(test, sum_res))
         # file.write(str(sum_res) + '\n')
         tot_iter_sol += sum_iter_sol
         tot_sum += sum_res
         tot_time += sum_time
     # file.close()
+    print('Agent = {} Util = {}'.format(agent, tot_sum / tot_test));
     return tot_sum / tot_test, tot_iter_sol / tot_test, tot_time / tot_test
 
 
 if __name__ == "__main__":
-    file1 = open('result_output.txt', 'w')
-    file2 = open('time_output.txt', 'w')
-    file3 = open('iteration_output.txt', 'w')
-    for agents in range(3, 4):
-        result, iter_sol, time_taken = main(agent=agents, simulations=1, tot_test=1)
-        print(result)
-        file1.write('{} {}\n'.format(agents, result))
-        file2.write('{} {}\n'.format(agents, time_taken))
-        file3.write('{} {}\n'.format(agents, ' '.join([str(v) for v in iter_sol])))
-    file1.close()
-    file2.close()
-    file3.close()
-
+    main(25, 1, 10)
