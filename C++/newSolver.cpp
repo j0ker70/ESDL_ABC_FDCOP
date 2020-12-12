@@ -4,16 +4,15 @@ using namespace std;
 #define dbg(v) cout << __LINE__ << ": " << #v << " = " << v << endl
 
 default_random_engine re(unsigned(time(nullptr)));
+uniform_real_distribution<double> unif(0, 1);
 
 int randomInt (int l, int r) { // Return random integer between [l, r]
     return rand() % (r - l + 1) + l;
 }
 
 double randomDouble (double fMin, double fMax) { // Return random double between [fMin, fMax]
-    //double f = (double) rand() / RAND_MAX;
-    //return fMin + f * (fMax - fMin);
-    uniform_real_distribution<double> unif(fMin, fMax);
-    return unif(re);
+    double f = unif(re);
+    return fMin + f * (fMax - fMin);
 }
 
 vector <double> randomDoubleList (double l, double r, int n) {
@@ -106,11 +105,11 @@ struct Solution {
     int n, tried;
     double fitness;
     vector <double> pos;
-    vector <bool> vis;
+    vector <int> vis;
     Solution () {}
     Solution (int nn) : n(nn) {
         pos = randomDoubleList(lowerBound, upperBound, n);
-        vis.resize(n);
+        vis.resize(n, 0);
         tried = 0;
         fitness = graph.totalCost(pos);
     }
@@ -124,7 +123,7 @@ struct Solution {
     void setPos (const vector <double> &newPos) {
         pos = newPos;
         fitness = graph.totalCost(pos);
-        fill(begin(vis), end(vis), false);
+        fill(begin(vis), end(vis), 0);
         tried = 0;
     }
     void fitBounds (double &v) {
@@ -140,6 +139,7 @@ struct Solution {
         auto [j, h] = chooseTwo(n);
         double phi1 = randomDouble(-0.5, 0.5);
         double phi2 = randomDouble(0, 1.0);
+        flag = true;
         if (flag) {
             newSol.pos[j] = 0.5 * (m.pos[h] + Gbest.pos[j]) + phi1 * (pos[h] - e.pos[j]) + phi2 * (pos[h] - Gbest.pos[j]);
         }
@@ -152,11 +152,10 @@ struct Solution {
             setPos(newSol.pos);
             return true;
         }
-        ++tried;
-        if (!vis[j]) {
+        ++vis[j];
+        if (vis[j] == 1) {
             ++tried;
         }
-        vis[j] = true;
         if (tried >= limit) {
             check();
             return true;
@@ -173,29 +172,51 @@ struct Population {
     Population (int SN, int m, int ag) : sn(SN), es(m), agents(ag) {
         fit.resize(sn);
         prob.resize(sn);
-        pop.resize(sn, Solution(agents));
+        pop.resize(sn);
+        for (auto &v : pop) {
+            v = Solution(agents);
+        }
         elite.resize(es);
         Gbest = pop[0];
-        for (int i = 0; i < es; i++) {
-            elite[i] = pop[i];
-            if (pop[i].fitness > Gbest.fitness) {
-                Gbest = pop[i];
-            }
-        }
-        for (int i = es; i < sn; i++) {
+        //for (int i = 0; i < es; i++) {
+            //elite[i] = pop[i];
+            //if (pop[i].fitness > Gbest.fitness) {
+                //Gbest = pop[i];
+            //}
+        //}
+        //for (int i = es; i < sn; i++) {
+            //updateValues(pop[i]);
+        //}
+        for (int i = 0; i < sn; i++) {
             updateValues(pop[i]);
         }
     }
-    void updateValues (const Solution &s) {
-        int mnPos = 0;
-        for (int i = 1; i < es; i++) {
-            if (elite[mnPos].fitness > elite[i].fitness) {
-                mnPos = i;
+    void buildElite () {
+        for (int i = 0; i < es; i++) {
+            elite[i] = pop[i];
+        }
+        for (int j = es; j < sn; j++) {
+            int mnPos = 0;
+            for (int i = 0; i < es; i++) {
+                if (elite[mnPos].fitness > elite[i].fitness) {
+                    mnPos = i;
+                }
+            }
+            if (elite[mnPos].fitness < pop[j].fitness) {
+                elite[mnPos] = pop[j];
             }
         }
-        if (elite[mnPos].fitness < s.fitness) {
-            elite[mnPos] = s;
-        }
+    }
+    void updateValues (const Solution &s) {
+        //int mnPos = 0;
+        //for (int i = 1; i < es; i++) {
+            //if (elite[mnPos].fitness > elite[i].fitness) {
+                //mnPos = i;
+            //}
+        //}
+        //if (elite[mnPos].fitness < s.fitness) {
+            //elite[mnPos] = s;
+        //}
         if (Gbest.fitness < s.fitness) {
             Gbest = s;
         }
@@ -209,6 +230,7 @@ struct Population {
             else {
                 fit[i] = 1.0 / (1 - pop[i].fitness);
             }
+            assert(fit[i] >= 0);
             sum += fit[i];
         }
         for (int i = 0; i < sn; i++) {
@@ -242,17 +264,19 @@ struct Population {
     }
     void onlooker () {
         build();
-        for (int i = 0; i < sn; i++) {
+        for (int i = 0; i < 2 * sn; i++) {
             int j = chooseOne();
             assert(j >= 0);
             for (int k = 0; k < es; k++) {
                 searchSpace(j, k, false);
             }
+            //searchSpace(j, -1, false);
         }
     }
     double solve (int iterations) {
         //double hun = 0;
         for (int itr = 0; itr < iterations; itr++) {
+            buildElite();
             employed();
             onlooker();
         }
@@ -268,7 +292,7 @@ void initialize () {
 
 double singleSimulation (int populationSize, int eliteSize, int ag) {
     Population population(populationSize, eliteSize, ag);
-    double val = population.solve(100);
+    double val = population.solve(200);
     return val;
 }
 

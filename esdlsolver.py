@@ -140,9 +140,9 @@ class Solver:
             self.onlooker_bee_phase()
             # en = time.time()
             # print('onlooker bee phase took {} seconds'.format(en - st))
-            
+
             self.get_maximum()
-            
+
             # st = time.time()
             self.scout_bee_phase()
             # en = time.time()
